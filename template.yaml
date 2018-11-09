@@ -1,6 +1,17 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: 'Cost Watcher'
+Parameters:
+  SlackWebHookUrl:
+    Type: String
+    AllowedPattern: 'hooks.slack.com/services/[\w/]+'
+    Default: 'hooks.slack.com/services/'
+    Description: Webhook URL of Slack (Except "https://")
+  DailyChargesThreshold:
+    Type: Number
+    AllowedPattern: '[0-9]+'
+    Default: 0
+    Description: Notification color will be red when daily cost is over this threshold (USD)
 Resources:
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -27,16 +38,19 @@ Resources:
                   - logs:PutLogEvents
                   - cloudwatch:GetMetricStatistics
                   - cloudwatch:ListMetrics
-                  - ssm:GetParameters
                 Resource: '*'
   LambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: function
+      CodeUri: s3://tokyo.k.iwami/cost-watcher/function.zip
       Handler: app.lambda_handler
       Runtime: python3.6
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 30
+      Environment:
+        Variables:
+          SlackWebHookUrl: !Ref SlackWebHookUrl
+          DailyChargesThreshold: !Ref DailyChargesThreshold
       Events:
         Timer:
           Type: Schedule

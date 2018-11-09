@@ -10,27 +10,12 @@ import requests
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-ssm = boto3.client('ssm')
-ssm_response = ssm.get_parameters(
-    Names=[
-        '/cost_watcher/daily_charges_threshold',
-        '/cost_watcher/encrypted_slack_webhook_url'
-    ],
-    WithDecryption=True
-)
-ssm_params = {}
-# 復号化したパラメータを配列に格納
-for param in ssm_response['Parameters']:
-    ssm_params[param['Name']] = param['Value']
-
-DAILY_CHARGES_THRESHOLD = int(
-    ssm_params['/cost_watcher/daily_charges_threshold'])
-SLACK_WEBHOOK_URL = 'https://' + \
-    ssm_params['/cost_watcher/encrypted_slack_webhook_url']
+DAILY_CHARGES_THRESHOLD = int(os.environ['DailyChargesThreshold'])
+SLACK_WEBHOOK_URL = 'https://' + os.environ['SlackWebHookUrl']
 
 def lambda_handler(event, context):
     """Cost Watcher
-    無料使用枠に収まる範囲でコストを集計する（KMSはデフォルトマスターキーを使用、Cost Explorerは使用しない）
+    無料使用枠に収まる範囲でコストを集計する
     CWのEstimatedChargesは、UTC5:00, 13:00, 21:00頃にputされるので、このコードでは今日、昨日のUTC5:00の差分額を利用する
     Lambdaは日本時間の16時(UTC7:00)に発火させる
     通知内容は、1日分の合計及びサービスごとの請求金額
