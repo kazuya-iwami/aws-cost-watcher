@@ -1,0 +1,5 @@
+.DS_Store
+
+packaged.yaml
+/function/*
+!/function/app.py
