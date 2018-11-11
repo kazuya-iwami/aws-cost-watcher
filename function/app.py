@@ -157,4 +157,3 @@ def lambda_handler(event, context):
         requests.post(SLACK_WEBHOOK_URL, data=json.dumps(payload))
 
     logger.info('Finish')
-lambda_handler(None, None)
