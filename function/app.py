@@ -19,12 +19,13 @@ end_str = (datetime.datetime.utcnow() - datetime.timedelta(days=8)).strftime('%Y
 cost_expolerer_url = 'https://console.aws.amazon.com/cost-reports/home?#/custom?groupBy=Service&forecastTimeRangeOption=None&hasBlended=false&excludeRefund=false&excludeCredit=false&excludeRIUpfrontFees=false&excludeRIRecurringCharges=false&excludeOtherSubscriptionCosts=false&excludeSupportCharges=false&excludeTax=false&excludeTaggedResources=false&chartStyle=Stack&timeRangeOption=Last7Days&granularity=Daily&filter=%5B%5D&reportType=CostUsage&hasAmortized=false&startDate={}&endDate={}'.format(start_str, end_str)
 
 strings = {
-    'English': ['Daily cost: {}$. Total cost for this month: {}$.', '*For more information, please see <{}|Cost Explorer>.*\n','An error occurred. For more information, please see CloudWatch Logs.', '[Cannot get sufficient data] '],
-    'Japanese': ['1日で約 {}$ 利用しました. 現在の請求額（今月分）は約 {}$ です. ', '*詳細は<{}|Cost Explorer>をご覧ください. *\n', 'エラーが発生しました. CloudWatch Logsをご確認下さい. ', '[十分なデータが取得できませんでした] '],
+    'English': ['Daily cost: {}$. Total cost for this month: {}$.', 'For more information, please see <{}|Cost Explorer>.\n','An error occurred. For more information, please see CloudWatch Logs.', '[Cannot get sufficient data] '],
+    'Japanese': ['1日で約 {}$ 利用しました. 現在の請求額（今月分）は約 {}$ です. ', '詳細は<{}|Cost Explorer>をご覧ください. \n', 'エラーが発生しました. CloudWatch Logsをご確認下さい. ', '[十分なデータが取得できませんでした] '],
 }
 
 def lambda_handler(event, context):
     logger.info('Run')
+    account_id = boto3.client('sts').get_caller_identity().get('Account')
     try:
         cloud_watch = boto3.client('cloudwatch', region_name='us-east-1')
         # Get service name list
@@ -75,7 +76,7 @@ def lambda_handler(event, context):
             raise RuntimeError('An Error occurred in getting daily total cost. Got no datapoint.')
 
         charges_until_today = datapoints[0][1]
-
+        
         # Get daily cost of each service.
         service_charges_list = []
         for service_name in serevice_names:
@@ -126,13 +127,12 @@ def lambda_handler(event, context):
             color = 'danger'
         else:
             color = 'good'
-
         payload = {
-            'username': 'Cost-Watcher',
+            'username': 'Cost-Watcher@{}'.format(account_id),
             'icon_emoji': ':money_with_wings:',
+            'text': strings[LANGUAGE][0].format(round(daily_charges, 2), round(charges_until_today, 2)),
             'attachments': [
                 {
-                    'title': strings[LANGUAGE][0].format(round(daily_charges, 2), round(charges_until_today, 2)),
                     'text': text,
                     'color': color,
                     "mrkdwn_in": ["text"]
@@ -147,12 +147,7 @@ def lambda_handler(event, context):
         payload = {
             'username': 'Cost-Watcher',
             'icon_emoji': ':money_with_wings:',
-            'attachments': [
-                {
-                    'title': strings[LANGUAGE][2],
-                    'color': 'danger',
-                }
-            ]
+            'text': strings[LANGUAGE][2]
         }
         requests.post(SLACK_WEBHOOK_URL, data=json.dumps(payload))
 
