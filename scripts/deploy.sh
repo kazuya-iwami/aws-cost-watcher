@@ -9,7 +9,7 @@ echo "Input some parameter."
 read -p "1. Webhook URL of Slack (Except 'https://'). You can get the URL from https://slack.com/services/new/incoming-webhook. [hooks.slack.com/services/xxxx]:" SLACK_WEBHOOK_URL
 echo "Set slack_webhook_url: ${SLACK_WEBHOOK_URL}"
 
-read -p "2. Language of Slack notification. Now we support English and Japanese. [en / jp]:" LANGUAGE
+read -p "2. Language of Slack notification. Now we support English and Japanese. [English / Japanese]:" LANGUAGE
 echo "Set language: ${LANGUAGE}"
 
 read -p "3. Notification time in 24-hour notation (UTC). This value should be 7, 14, 22 because billing metrics are put at around 5(6)am, 1pm, 9pm. [7]:" NOTIFICATION_TIME
