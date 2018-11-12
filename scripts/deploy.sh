@@ -36,7 +36,7 @@ aws cloudformation package --template ../template.yaml \
     --s3-bucket $BUCKET_NAME --output-template-file ../packaged.yaml
 
 aws cloudformation deploy --template-file ../packaged.yaml \
-    --stack-name cost-watcher4 --capabilities CAPABILITY_NAMED_IAM \
+    --stack-name cost-watcher --capabilities CAPABILITY_NAMED_IAM \
     --parameter-overrides SlackWebHookUrl=$SLACK_WEBHOOK_URL \
     SlackNotificationLanguage=$LANGUAGE \
     NotificationTime=$NOTIFICATION_TIME \
