@@ -15,8 +15,11 @@ echo "Set language: ${LANGUAGE}"
 read -p "3. Notification time in 24-hour notation (UTC). This value should be 7, 14, 22 because billing metrics are put at around 5(6)am, 1pm, 9pm. [7]:" NOTIFICATION_TIME
 echo "Set notification_time: ${NOTIFICATION_TIME}"
 
-read -p "4. Threshold of Daily Cost. Notification color will be red when daily cost is over this threshold (USD). [0]:" DAILY_COST_THRESHOLD
-echo "Set : daily_cost_thredhold: ${DAILY_COST_THRESHOLD}"
+read -p "4.  Notification threshold of Daily Cost ($). Notification color will be red when daily cost is over this threshold. [0]:" DAILY_COST_NOTIFICATION_THRESHOLD
+echo "Set : daily_cost_notification_thredhold: ${DAILY_COST_NOTIFICATION_THRESHOLD}"
+
+read -p "5. Warning threshold of Daily Cost ($). Notification color will be red when daily cost is over this threshold. [0]:" DAILY_COST_WARNING_THRESHOLD
+echo "Set : daily_cost_warning_thredhold: ${DAILY_COST_WARNING_THRESHOLD}"
 
 echo 'Processing...'
 ACCOUNT_ID=$(aws sts get-caller-identity | jq -r '.Account')
@@ -33,10 +36,11 @@ aws cloudformation package --template ../template.yaml \
     --s3-bucket $BUCKET_NAME --output-template-file ../packaged.yaml
 
 aws cloudformation deploy --template-file ../packaged.yaml \
-    --stack-name cost-watcher --capabilities CAPABILITY_NAMED_IAM \
+    --stack-name cost-watcher4 --capabilities CAPABILITY_NAMED_IAM \
     --parameter-overrides SlackWebHookUrl=$SLACK_WEBHOOK_URL \
-    SlackNotificationLangage=$LANGUAGE \
+    SlackNotificationLanguage=$LANGUAGE \
     NotificationTime=$NOTIFICATION_TIME \
-    DailyCostThreshold=$DAILY_COST_THRESHOLD
+    DailyCostNotificationThreshold=$DAILY_COST_NOTIFICATION_THRESHOLD \
+    DailyCostWarningThreshold=$DAILY_COST_WARNING_THRESHOLD
 
 echo 'Finished'

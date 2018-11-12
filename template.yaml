@@ -20,10 +20,14 @@ Parameters:
     Type: Number
     Default: '7'
     Description: '[Int: 0-23] Notification time in 24-hour notation (UTC). This value should be 7, 14, 22 because billing metrics are put at around 5(6)am, 1pm, 9pm.' 
-  DailyCostThreshold:
+  DailyCostNotificationThreshold:
     Type: Number
     Default: 0
-    Description: 'Threshold of Daily Cost ($). Notification color changes from green to red when daily cost is over this threshold'
+    Description: '[Int] Notification threshold of Daily Cost ($). Notification will be sent when daily cost is over this threshold'
+  DailyCostWarningThreshold:
+    Type: Number
+    Default: 0
+    Description: '[Int] Warning threshold of Daily Cost ($). Notification color will change from green to red when daily cost is over this threshold'
 
 Resources:
   LambdaExecutionRole:
@@ -63,10 +67,18 @@ Resources:
       Environment:
         Variables:
           SlackWebHookUrl: !Ref SlackWebHookUrl
-          DailyCostThreshold: !Ref DailyCostThreshold
+          DailyCostNotificationThreshold: !Ref DailyCostNotificationThreshold
+          DailyCostWarningThreshold: !Ref DailyCostWarningThreshold
           SlackNotificationLanguage: !Ref SlackNotificationLanguage
+          NotificationTime: !Ref NotificationTime
       Events:
         Timer:
           Type: Schedule
           Properties:
             Schedule: !Sub 'cron(0 ${NotificationTime} * * ? *)'
+  # Custom resource to invoke lambda function for init test 
+  InitTest:
+    Type: Custom::InitTest
+    Properties:
+      ServiceToken: !GetAtt LambdaFunction.Arn
+      InitTest: 'true'

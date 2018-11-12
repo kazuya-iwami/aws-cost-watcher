@@ -4,3 +4,4 @@
 /function.zip
 /function/*
 !/function/app.py
+!/function/cfnresponse.py
